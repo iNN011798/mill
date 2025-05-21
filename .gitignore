@@ -17,8 +17,6 @@
 *.ilk
 *.pdb
 *.exe
-*.dll
-*.lib
 
 # CMake 生成文件
 CMakeFiles/
