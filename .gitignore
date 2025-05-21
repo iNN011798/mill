@@ -1,0 +1,31 @@
+# 忽略构建输出和可执行文件
+/build/
+/bin/
+/out/
+
+# VSCode、CLion、QtCreator 等临时文件（可选）
+.vscode/
+.idea/
+*.user
+*.user.*
+
+# 编译中间文件
+*.obj
+*.o
+*.log
+*.tmp
+*.ilk
+*.pdb
+*.exe
+*.dll
+*.lib
+
+# CMake 生成文件
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# 忽略 Mac/Linux 系统文件
+.DS_Store
+Thumbs.db
