@@ -25,6 +25,8 @@ glm::vec3 g_toolBaseWorldPosition(0.0f, -0.5f, 0.0f); // 刀具模型的基础世界坐标 
 
 // 新增：工具切割参数
 const float TOOL_RADIUS = 0.01f; // 工具的切割半径，根据模型大小调整
+const float TOOL_TIP_LOCAL_Y_OFFSET = 0.39f; // 工具尖端在其局部坐标系中的Y偏移
+const float CUBE_MIN_LOCAL_Y = -0.3f;      // 立方体模型在局部坐标系中的最小Y值
 bool g_enableMilling = false;    // 是否启用铣削的开关
 bool g_millingKeyPressed = false; // 用于检测铣削按键是否持续按下
 
@@ -110,8 +112,14 @@ int main()
             glm::mat4 world_to_cube_local_matrix = glm::inverse(model_cube_matrix);
 
             // 2. 工具尖端在立方体局部空间的坐标
-            // 假设工具尖端在工具模型的局部原点 (0,0,0) -> 世界坐标就是 g_toolBaseWorldPosition
-            glm::vec4 tool_tip_world = glm::vec4(g_toolBaseWorldPosition, 1.0f); 
+            // 首先计算工具尖端的有效世界坐标
+            // g_toolBaseWorldPosition 是工具原点的世界坐标
+            // 我们需要将局部偏移 (0, TOOL_TIP_LOCAL_Y_OFFSET, 0) 加到这个原点上
+            // 假设工具没有旋转且缩放为1 (模型加载器和渲染器目前是这样做的)
+            glm::vec3 tool_tip_effective_world_position = g_toolBaseWorldPosition;
+            tool_tip_effective_world_position.y += TOOL_TIP_LOCAL_Y_OFFSET;
+            
+            glm::vec4 tool_tip_world = glm::vec4(tool_tip_effective_world_position, 1.0f); 
             glm::vec4 tool_tip_cube_local_homogeneous = world_to_cube_local_matrix * tool_tip_world;
             glm::vec3 tool_tip_cube_local = glm::vec3(tool_tip_cube_local_homogeneous / tool_tip_cube_local_homogeneous.w); // Perspective divide
 
@@ -129,11 +137,14 @@ int main()
                     float dist_xz_squared = dx * dx + dz * dz; // 使用距离的平方以避免 sqrt
 
                     if (dist_xz_squared < (TOOL_RADIUS * TOOL_RADIUS)) {
-                        if (current_vertex.Position.y > tool_tip_cube_local.y) {
-                             current_vertex.Position.y = tool_tip_cube_local.y;
+                        // 计算工具希望切割到的Y值，但不能低于立方体的最小Y值
+                        float target_y_cut = glm::max(tool_tip_cube_local.y, CUBE_MIN_LOCAL_Y);
+
+                        if (current_vertex.Position.y > target_y_cut) {
+                             current_vertex.Position.y = target_y_cut;
                              vertices_modified = true;
-                             // 可选：更新法线。简单起见，如果顶点被修改，其法线指向正Y (假设切割面是平的)
-                             // current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f); // 注意：如果模型有其他变换，这个法线可能不正确
+                             // Optional: Update normal
+                             // current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f); 
                         }
                     }
                 }
