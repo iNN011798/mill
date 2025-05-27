@@ -19,8 +19,14 @@
 // cursor模型相对运动
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
-glm::vec3 g_toolBaseWorldPosition(0.0f, 0.0f, 0.0f); // 刀具模型的基础世界坐标 (XZ固定, Y为浮动中心)
+//glm::vec3 g_toolBaseWorldPosition(0.0f, 0.0f, 0.0f); // 刀具模型的基础世界坐标 (XZ固定, Y为浮动中心)
+glm::vec3 g_toolBaseWorldPosition(0.0f, -0.5f, 0.0f); // 刀具模型的基础世界坐标 (XZ固定, Y为浮动中心)
 // end
+
+// 新增：工具切割参数
+const float TOOL_RADIUS = 0.01f; // 工具的切割半径，根据模型大小调整
+bool g_enableMilling = false;    // 是否启用铣削的开关
+bool g_millingKeyPressed = false; // 用于检测铣削按键是否持续按下
 
 // 函数声明 (回调函数和输入处理函数)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -66,8 +72,8 @@ int main()
 
     // 将blender导出的obj、mtl、jpg等一系列模型文件封装成Model
     // 刀具模型、毛坯模型
-    Model cubeModel(FileSystem::getPath("resources/objects/download/256/256cube.obj"));
-    Model toolModel(FileSystem::getPath("resources/objects/download/tool/tool.obj"));
+    Model cubeModel(FileSystem::getPath("resources/objects/mill/cube/cube.obj"));
+    Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
 
 
     // 线框模式
@@ -87,6 +93,60 @@ int main()
         // input
         // -----
         processInput(window);
+
+        // ------ Milling Logic Start ------
+        if (g_enableMilling) { // 只有当铣削启用时才执行
+            // 1. 获取变换矩阵
+            // 立方体的模型矩阵 (仅平移和缩放，无旋转)
+            glm::mat4 model_cube_matrix = glm::mat4(1.0f);
+            model_cube_matrix = glm::translate(model_cube_matrix, g_cubeWorldPosition);
+            // model_cube_matrix = glm::scale(model_cube_matrix, glm::vec3(1.0f)); // 假设立方体基础缩放为1。如果cube.obj本身有尺寸，这里可能需要调整或从模型读取
+
+            // 工具的模型矩阵 (仅平移和缩放，无旋转)
+            // glm::mat4 model_tool_matrix = glm::mat4(1.0f);
+            // model_tool_matrix = glm::translate(model_tool_matrix, g_toolBaseWorldPosition);
+            // model_tool_matrix = glm::scale(model_tool_matrix, glm::vec3(1.0f)); // 假设工具基础缩放为1
+
+            glm::mat4 world_to_cube_local_matrix = glm::inverse(model_cube_matrix);
+
+            // 2. 工具尖端在立方体局部空间的坐标
+            // 假设工具尖端在工具模型的局部原点 (0,0,0) -> 世界坐标就是 g_toolBaseWorldPosition
+            glm::vec4 tool_tip_world = glm::vec4(g_toolBaseWorldPosition, 1.0f); 
+            glm::vec4 tool_tip_cube_local_homogeneous = world_to_cube_local_matrix * tool_tip_world;
+            glm::vec3 tool_tip_cube_local = glm::vec3(tool_tip_cube_local_homogeneous / tool_tip_cube_local_homogeneous.w); // Perspective divide
+
+
+            // 3. 遍历立方体模型的每个网格和顶点
+            bool vertices_modified = false;
+            for (unsigned int i = 0; i < cubeModel.meshes.size(); ++i) {
+                Mesh& current_mesh = cubeModel.meshes[i]; // 注意获取引用
+                for (unsigned int j = 0; j < current_mesh.vertices.size(); ++j) {
+                    Vertex& current_vertex = current_mesh.vertices[j]; // 注意获取引用
+
+                    // 计算顶点在立方体局部XZ平面上与工具尖端投影的2D距离
+                    float dx = current_vertex.Position.x - tool_tip_cube_local.x;
+                    float dz = current_vertex.Position.z - tool_tip_cube_local.z;
+                    float dist_xz_squared = dx * dx + dz * dz; // 使用距离的平方以避免 sqrt
+
+                    if (dist_xz_squared < (TOOL_RADIUS * TOOL_RADIUS)) {
+                        if (current_vertex.Position.y > tool_tip_cube_local.y) {
+                             current_vertex.Position.y = tool_tip_cube_local.y;
+                             vertices_modified = true;
+                             // 可选：更新法线。简单起见，如果顶点被修改，其法线指向正Y (假设切割面是平的)
+                             // current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f); // 注意：如果模型有其他变换，这个法线可能不正确
+                        }
+                    }
+                }
+            }
+
+            // 4. 如果有顶点被修改，则更新VBO
+            if (vertices_modified) {
+                for (unsigned int i = 0; i < cubeModel.meshes.size(); ++i) {
+                    cubeModel.meshes[i].updateVertexBuffer();
+                }
+            }
+        }
+        // ------ Milling Logic End ------
 
         // render
         // ------
@@ -158,6 +218,17 @@ void processInput(GLFWwindow *window)
         g_toolBaseWorldPosition.y += actualToolMoveSpeed;
     if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
         g_toolBaseWorldPosition.y -= actualToolMoveSpeed;
+
+    // 新增：控制铣削开关 (例如，按 M 键切换)
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS && !g_millingKeyPressed) {
+        g_enableMilling = !g_enableMilling;
+        g_millingKeyPressed = true;
+        if (g_enableMilling) std::cout << "Milling ENABLED" << std::endl;
+        else std::cout << "Milling DISABLED" << std::endl;
+    }
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_RELEASE) {
+        g_millingKeyPressed = false;
+    }
 }
 
 // 窗体视口回调

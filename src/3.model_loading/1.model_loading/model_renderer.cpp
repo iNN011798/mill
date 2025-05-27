@@ -20,7 +20,7 @@ void renderModels(Shader& shader, Model& cubeModel, Model& toolModel,
     //glm::vec3 current_tool_world_position = toolBasePosition; // 从基础位置开始
     //current_tool_world_position.y += tool_y_dynamic_offset; // 应用Y轴的动态偏移
 
-    glm::vec3 tool_scale = glm::vec3(0.5f, 0.5f, 0.5f); // 刀具的缩放，根据模型大小调整
+    glm::vec3 tool_scale = glm::vec3(1.0f, 1.0f, 1.0f); // 刀具的缩放，根据模型大小调整
 
     glm::mat4 model_tool = glm::mat4(1.0f);
     model_tool = glm::translate(model_tool, toolBasePosition);
