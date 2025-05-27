@@ -66,7 +66,7 @@ int main()
 
     // 将blender导出的obj、mtl、jpg等一系列模型文件封装成Model
     // 刀具模型、毛坯模型
-    Model cubeModel(FileSystem::getPath("resources/objects/download/blenderCube/cubeWithPicture.obj"));
+    Model cubeModel(FileSystem::getPath("resources/objects/download/256/256cube.obj"));
     Model toolModel(FileSystem::getPath("resources/objects/download/tool/tool.obj"));
 
 
