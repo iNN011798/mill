@@ -2,12 +2,14 @@
 /build/
 /bin/
 /out/
+.vs/
 
 # VSCode、CLion、QtCreator 等临时文件（可选）
 .vscode/
 .idea/
 *.user
 *.user.*
+
 
 # 编译中间文件
 *.obj
@@ -17,6 +19,8 @@
 *.ilk
 *.pdb
 *.exe
+
+!resources/**/*.obj
 
 # CMake 生成文件
 CMakeFiles/

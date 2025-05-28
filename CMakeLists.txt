@@ -170,9 +170,9 @@ function(create_project_from_sources chapter demo)
 
     # msvc 为每个项目生成.vcxproj.user文件，设置工作目录
     # if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
-    if(MSVC)
-        configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
-    endif(MSVC)
+    #if(MSVC)
+    #    configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
+    #endif(MSVC)
 endfunction()
 
 # 项目批量生成，使用foreach循环 + 自定义函数
