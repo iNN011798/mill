@@ -9,9 +9,6 @@
 // 鉴于我们只是重构，假设 learnopengl/model.h 或 model_loading.cpp 已经处理了它。
 
 bool initGLFW(GLFWwindow*& window, const char* title,
-    void (*fb_callback)(GLFWwindow*, int, int),
-    void (*mouse_callback)(GLFWwindow*, double, double),
-    void (*scroll_callback)(GLFWwindow*, double, double),
     unsigned int scr_width, unsigned int scr_height)
 {
     // glfw: 初始化并配置
@@ -39,9 +36,9 @@ bool initGLFW(GLFWwindow*& window, const char* title,
         return false;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, fb_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetFramebufferSizeCallback(window, fb_callback); // 由调用者设置
+    // glfwSetCursorPosCallback(window, mouse_callback);   // 由调用者设置
+    // glfwSetScrollCallback(window, scroll_callback);     // 由调用者设置
 
     // 通知GLFW捕获我们的鼠标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
