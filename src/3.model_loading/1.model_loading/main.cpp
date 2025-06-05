@@ -32,7 +32,8 @@ Camera camera(glm::vec3(0.0f, 0.5f, 2.5f));
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-MillingManager millingManager;
+MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
+// MillingManager millingManager; // 使用默认参数
 
 int main()
 {
@@ -68,9 +69,24 @@ int main()
     // 将blender导出的obj、mtl、jpg等一系列模型文件封装成Model
     // 刀具模型、毛坯模型
     Model cubeModel(FileSystem::getPath("resources/objects/stl/stl.stl"));
-    //Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
-    Model toolModel(FileSystem::getPath("resources/objects/obj_tool/tool_obj.obj"));
+    Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
+    //Model toolModel(FileSystem::getPath("resources/objects/obj_tool/tool_obj.obj"));
 
+    // 在模型加载后，初始化 MillingManager 的空间分区结构
+    // 您需要根据您的模型调整这些参数
+    float surfaceYValue = 0.0f;         // 假设表面主要在 Y=0 附近 (需要根据您的模型调整)
+    float surfaceYThreshold = 0.1f;     // Y坐标的容差范围
+    int quadtreeMaxLevels = 3;          // 四叉树最大层数
+    int quadtreeMaxVertsPerNode = 20;   // 每个叶节点最大顶点数
+    // TODO: 检查您的 cubeModel 的实际表面Y值，并相应地调整 surfaceYValue 和 surfaceYThreshold。
+    // 例如，如果您的cube模型上表面是平的且Y=0.5，则 surfaceYValue可以设为0.5f。
+    // 如果模型是从Blender导出的，原点可能在模型的几何中心，或者底部。
+    // 您可能需要先检查一下 cubeModel.meshes[0].vertices[any_surface_vertex].Position.y 的值。
+    millingManager.initializeSpatialPartition(cubeModel, 
+                                            surfaceYValue, 
+                                            surfaceYThreshold, 
+                                            quadtreeMaxLevels, 
+                                            quadtreeMaxVertsPerNode);
 
     // 线框模式
     // draw in wireframe
