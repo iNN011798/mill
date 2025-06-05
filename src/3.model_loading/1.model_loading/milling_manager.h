@@ -32,6 +32,8 @@ private:
     float toolTipLocalYOffset_;
     float cubeMinLocalY_;
     ToolType toolheadType_; 
+    float Y_ball_center;
+    float new_Y;
 };
 
 #endif // MILLING_MANAGER_H 

@@ -50,7 +50,13 @@ bool MillingManager::processMilling(Model& cubeModel,
                         break;
                     case ball:
                         //current_vertex.Position.y = glm::max(double(target_y_cut), current_vertex.Position.y - std::sqrt(0.0001 - dist_xz_squared));
+#if 1
                         current_vertex.Position.y = current_vertex.Position.y - std::sqrt(0.0001 - dist_xz_squared);
+#else
+                        Y_ball_center = tool_tip_cube_local.y + toolRadius_;
+                        new_Y = Y_ball_center - std::sqrt((toolRadius_ * toolRadius_) - dist_xz_squared);
+                        current_vertex.Position.y = glm::max(new_Y, cubeMinLocalY_);
+#endif
                         break;
                     default:
                         break;
