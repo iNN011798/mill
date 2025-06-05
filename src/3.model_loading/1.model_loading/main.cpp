@@ -11,6 +11,7 @@
 #include <learnopengl/model.h>
 
 #include <iostream>
+#include <iomanip> // For std::fixed and std::setprecision
 
 #include "renderer_setup.h"
 #include "model_renderer.h"
@@ -31,6 +32,11 @@ Camera camera(glm::vec3(0.0f, 0.5f, 2.5f));
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// FPS calculation variables
+float fpsAccumulator = 0.0f;
+int frameCount = 0;
+float fpsUpdateInterval = 1.0f; // Update FPS display every 1 second
 
 MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
 // MillingManager millingManager; // 使用默认参数
@@ -101,6 +107,20 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // FPS Calculation and Console Output
+        // ----------------------------------
+        fpsAccumulator += deltaTime;
+        frameCount++;
+        if (fpsAccumulator >= fpsUpdateInterval) {
+            double fps = 0.0;
+            if (fpsAccumulator > 0) { // Avoid division by zero if fpsAccumulator is tiny
+                fps = static_cast<double>(frameCount) / fpsAccumulator;
+            }
+            std::cout << "FPS: " << std::fixed << std::setprecision(1) << fps << std::endl;
+            frameCount = 0;
+            fpsAccumulator = 0.0f;
+        }
 
         // input
         // -----

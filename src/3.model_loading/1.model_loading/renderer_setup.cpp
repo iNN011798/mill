@@ -40,6 +40,9 @@ bool initGLFW(GLFWwindow*& window, const char* title,
     // glfwSetCursorPosCallback(window, mouse_callback);   // 由调用者设置
     // glfwSetScrollCallback(window, scroll_callback);     // 由调用者设置
 
+    // 启用 VSync (交换间隔为1)
+    glfwSwapInterval(1);
+
     // 通知GLFW捕获我们的鼠标
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     return true;
