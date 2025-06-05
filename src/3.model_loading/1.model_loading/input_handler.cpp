@@ -32,7 +32,7 @@ void InputHandler::processInput(GLFWwindow *window) {
         camera_.ProcessKeyboard(RIGHT, deltaTime_);
 
     // 毛坯模型控制 (箭头键)
-    const float cubeMoveSpeed = 2.5f;
+    const float cubeMoveSpeed = 0.5f;
     float actualCubeMoveSpeed = cubeMoveSpeed * deltaTime_;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         cubeWorldPosition_.z -= actualCubeMoveSpeed;
@@ -44,7 +44,7 @@ void InputHandler::processInput(GLFWwindow *window) {
         cubeWorldPosition_.x += actualCubeMoveSpeed;
 
     // 刀具模型控制（page_up/down键）
-    const float toolMoveSpeed = 2.5f;
+    const float toolMoveSpeed = 0.5f;
     float actualToolMoveSpeed = toolMoveSpeed * deltaTime_;
     if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
         toolBaseWorldPosition_.y += actualToolMoveSpeed;

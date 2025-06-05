@@ -19,7 +19,7 @@
 
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
-glm::vec3 g_toolBaseWorldPosition(0.0f, -0.5f, 0.0f); // 刀具模型的基础世界坐标 (XZ固定, Y为浮动中心)
+glm::vec3 g_toolBaseWorldPosition(0.0f, 0.0f, 0.0f); // 刀具模型的基础世界坐标 (XZ固定, Y为浮动中心)
 
 bool g_enableMilling = false;    // 是否启用铣削的开关
 bool g_millingKeyPressed = false; // 用于检测铣削按键是否持续按下
@@ -69,7 +69,7 @@ int main()
     // 刀具模型、毛坯模型
     Model cubeModel(FileSystem::getPath("resources/objects/stl/stl.stl"));
     //Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
-    Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
+    Model toolModel(FileSystem::getPath("resources/objects/obj_tool/tool_obj.obj"));
 
 
     // 线框模式

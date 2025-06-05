@@ -49,7 +49,8 @@ bool MillingManager::processMilling(Model& cubeModel,
                         current_vertex.Position.y = target_y_cut;
                         break;
                     case ball:
-                        current_vertex.Position.y = glm::max(target_y_cut, target_y_cut);
+                        //current_vertex.Position.y = glm::max(double(target_y_cut), current_vertex.Position.y - std::sqrt(0.0001 - dist_xz_squared));
+                        current_vertex.Position.y = current_vertex.Position.y - std::sqrt(0.0001 - dist_xz_squared);
                         break;
                     default:
                         break;
