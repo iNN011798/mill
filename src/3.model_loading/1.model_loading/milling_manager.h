@@ -20,7 +20,7 @@ enum ToolType
 class MillingManager {
 public:
     MillingManager(float toolRadius = 0.01f,    // 刀具半径
-                   float toolTipLocalYOffset = 0.39f,  // 刀具模型底部y坐标，[0.4, 0.6]高度的模型，其底部y坐标是0.39
+                   float toolTipLocalYOffset = -0.11f,  // 刀具模型底部y坐标，[0.4, 0.6]高度的模型，其底部y坐标是0.39
                    float cubeMinLocalY = -0.3f, // 毛坯模型的y坐标最小值，即下表面顶点的y值
                    ToolType toolheadType_ = ToolType::flat);
     ~MillingManager(); // 为了管理 unique_ptr 的析构，最好有一个析构函数

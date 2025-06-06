@@ -39,6 +39,7 @@ int frameCount = 0;
 float fpsUpdateInterval = 1.0f; // Update FPS display every 1 second
 
 MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
+//MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
 // MillingManager millingManager; // 使用默认参数
 
 int main()
@@ -75,13 +76,13 @@ int main()
     // 将blender导出的obj、mtl、jpg等一系列模型文件封装成Model
     // 刀具模型、毛坯模型
     Model cubeModel(FileSystem::getPath("resources/objects/stl/stl.stl"));
-    Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
-    //Model toolModel(FileSystem::getPath("resources/objects/obj_tool/tool_obj.obj"));
+    //Model toolModel(FileSystem::getPath("resources/objects/mill/tool/tool.obj"));
+    Model toolModel(FileSystem::getPath("resources/objects/obj_tool/tool_obj.obj"));
 
     // 在模型加载后，初始化 MillingManager 的空间分区结构
     // 您需要根据您的模型调整这些参数
     float surfaceYValue = 0.0f;         // 假设表面主要在 Y=0 附近 (需要根据您的模型调整)
-    float surfaceYThreshold = 0.1f;     // Y坐标的容差范围
+    float surfaceYThreshold = 0.01f;     // Y坐标的容差范围
     int quadtreeMaxLevels = 3;          // 四叉树最大层数
     int quadtreeMaxVertsPerNode = 20;   // 每个叶节点最大顶点数
     // TODO: 检查您的 cubeModel 的实际表面Y值，并相应地调整 surfaceYValue 和 surfaceYThreshold。
