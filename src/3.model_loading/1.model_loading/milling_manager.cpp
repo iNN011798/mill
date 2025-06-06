@@ -121,6 +121,8 @@ bool MillingManager::processMilling(Model& cubeModel,
                 switch (toolheadType_) {
                     case ToolType::flat:
                         current_vertex.Position.y = target_y_cut;
+                        // 对于平面切削，法线直接指向上方 (Y轴正方向)
+                        current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
                         break;
                     case ToolType::ball: {
                         // For ball nose, the effective cutting Y depends on XZ distance from tool center
@@ -134,6 +136,9 @@ bool MillingManager::processMilling(Model& cubeModel,
                             float actual_cut_y = glm::max(ball_surface_y, cubeMinLocalY_);                             
                             if (current_vertex.Position.y > actual_cut_y) {
                                 current_vertex.Position.y = actual_cut_y;
+                                // 对于球面切削，法线是从球心指向顶点位置
+                                glm::vec3 sphere_center_local = tool_tip_cube_local + glm::vec3(0.0f, toolRadius_, 0.0f);
+                                current_vertex.Normal = glm::normalize(current_vertex.Position - sphere_center_local);
                             }
                         } // else: vertex is outside the direct spherical cut, no change from ball specific part
                         break;
@@ -165,6 +170,8 @@ bool MillingManager::processMilling(Model& cubeModel,
                         switch (toolheadType_) {
                             case ToolType::flat:
                                 current_vertex.Position.y = target_y_cut;
+                                // 对于平面切削，法线直接指向上方 (Y轴正方向)
+                                current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
                                 break;
                             case ToolType::ball: {
                                 float radius_squared = toolRadius_ * toolRadius_;
@@ -173,6 +180,9 @@ bool MillingManager::processMilling(Model& cubeModel,
                                 float actual_cut_y = glm::max(ball_surface_y, cubeMinLocalY_);
                                  if (current_vertex.Position.y > actual_cut_y) {
                                     current_vertex.Position.y = actual_cut_y;
+                                    // 对于球面切削，法线是从球心指向顶点位置
+                                    glm::vec3 sphere_center_local = tool_tip_cube_local + glm::vec3(0.0f, toolRadius_, 0.0f);
+                                    current_vertex.Normal = glm::normalize(current_vertex.Position - sphere_center_local);
                                 }
                                 break;
                             }
