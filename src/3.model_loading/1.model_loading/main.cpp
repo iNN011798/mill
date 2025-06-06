@@ -19,6 +19,7 @@
 #include "milling_manager.h"
 #include "input_handler.h"
 #include "text_renderer.h"
+#include "light_source.h"
 
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
@@ -79,6 +80,10 @@ int main()
     // build and compile shaders
     // -------------------------
     Shader ourShader("1.model_loading.vs", "1.model_loading.fs");
+    Shader lightCubeShader("light_cube.vs", "light_cube.fs");
+
+    // 创建光源
+    LightSource light(glm::vec3(0.5f, 0.7f, 2.0f));
 
     // 将blender导出的obj、mtl、jpg等一系列模型文件封装成Model
     // 刀具模型、毛坯模型
@@ -104,7 +109,7 @@ int main()
 
     // 线框模式
     // draw in wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
@@ -146,8 +151,22 @@ int main()
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // 更新光源位置
+        light.Position.x = 1.0f + sin(glfwGetTime()) * 1.5f;
+        light.Position.z = cos(glfwGetTime()) * 1.5f;
+
         // don't forget to enable shader before setting uniforms
         ourShader.use();
+
+        // 设置光照和材质uniforms
+        ourShader.setVec3("viewPos", camera.Position);
+        light.SetLightUniforms(ourShader);
+        
+        // 为毛坯设置材质
+        ourShader.setVec3("material.ambient", 0.5f, 0.5f, 0.5f);
+        ourShader.setVec3("material.diffuse", 0.8f, 0.8f, 0.8f);
+        ourShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
+        ourShader.setFloat("material.shininess", 16.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -157,17 +176,21 @@ int main()
 
         // 使用新的函数渲染模型
         renderModels(ourShader, cubeModel, toolModel, g_cubeWorldPosition, g_toolBaseWorldPosition, currentFrame);
+        
+        // 渲染光源立方体
+        lightCubeShader.use();
+        light.Draw(lightCubeShader, view, projection);
 
         // 渲染FPS文本
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // 为文本渲染切换到填充模式
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // 为文本渲染切换到填充模式
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_DEPTH_TEST);
-        textRenderer.RenderText(fpsText, 10.0f, SCR_HEIGHT - 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+        textRenderer.RenderText(fpsText, 10.0f, SCR_HEIGHT - 30.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
         // 恢复OpenGL状态
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // 切换回线框模式
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // 切换回线框模式
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
