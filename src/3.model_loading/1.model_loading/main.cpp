@@ -12,11 +12,13 @@
 
 #include <iostream>
 #include <iomanip> // For std::fixed and std::setprecision
+#include <sstream> // For std::stringstream
 
 #include "renderer_setup.h"
 #include "model_renderer.h"
 #include "milling_manager.h"
 #include "input_handler.h"
+#include "text_renderer.h"
 
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
@@ -37,9 +39,10 @@ float lastFrame = 0.0f;
 float fpsAccumulator = 0.0f;
 int frameCount = 0;
 float fpsUpdateInterval = 1.0f; // Update FPS display every 1 second
+std::string fpsText = "FPS: 0.0"; // String to hold the FPS text for rendering
 
-MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
-//MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
+//MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
+MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
 // MillingManager millingManager; // 使用默认参数
 
 int main()
@@ -68,6 +71,10 @@ int main()
 
     // 配置全局OpenGL状态 (包括stb_image翻转和深度测试)
     configureGlobalOpenGLState();
+
+    // 初始化文本渲染器
+    TextRenderer textRenderer(SCR_WIDTH, SCR_HEIGHT);
+    textRenderer.Load(FileSystem::getPath("resources/fonts/Antonio-Bold.ttf"), 24);
 
     // build and compile shaders
     // -------------------------
@@ -109,16 +116,19 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // FPS Calculation and Console Output
+        // FPS Calculation
         // ----------------------------------
         fpsAccumulator += deltaTime;
         frameCount++;
         if (fpsAccumulator >= fpsUpdateInterval) {
             double fps = 0.0;
-            if (fpsAccumulator > 0) { // Avoid division by zero if fpsAccumulator is tiny
+            if (fpsAccumulator > 0) { // Avoid division by zero
                 fps = static_cast<double>(frameCount) / fpsAccumulator;
             }
-            std::cout << "FPS: " << std::fixed << std::setprecision(1) << fps << std::endl;
+            std::stringstream ss;
+            ss << "FPS: " << std::fixed << std::setprecision(1) << fps;
+            fpsText = ss.str();
+            
             frameCount = 0;
             fpsAccumulator = 0.0f;
         }
@@ -147,6 +157,17 @@ int main()
 
         // 使用新的函数渲染模型
         renderModels(ourShader, cubeModel, toolModel, g_cubeWorldPosition, g_toolBaseWorldPosition, currentFrame);
+
+        // 渲染FPS文本
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // 为文本渲染切换到填充模式
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
+        textRenderer.RenderText(fpsText, 10.0f, SCR_HEIGHT - 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+        // 恢复OpenGL状态
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // 切换回线框模式
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
