@@ -32,6 +32,8 @@ struct Vertex {
 	int m_BoneIDs[MAX_BONE_INFLUENCE];
 	//weights from each bone
 	float m_Weights[MAX_BONE_INFLUENCE];
+    // color
+    glm::vec3 Color;
 };
 
 struct Texture {
@@ -189,6 +191,9 @@ private:
 		// weights
 		glEnableVertexAttribArray(6);
 		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
+        // vertex color
+        glEnableVertexAttribArray(7);
+        glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
         // ½â°ó¶¨VAO
         glBindVertexArray(0);
     }

@@ -115,6 +115,8 @@ private:
             vector.y = mesh->mVertices[i].y;
             vector.z = mesh->mVertices[i].z;
             vertex.Position = vector;
+            // set default color
+            vertex.Color = glm::vec3(0.5f, 0.5f, 0.5f);
             // normals
             if (mesh->HasNormals())
             {
