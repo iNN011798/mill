@@ -28,22 +28,22 @@ glm::vec3 g_toolBaseWorldPosition(0.0f, 0.0f, 0.0f); // 刀具模型的基础世界坐标 (
 bool g_enableMilling = false;    // 是否启用铣削的开关
 bool g_millingKeyPressed = false; // 用于检测铣削按键是否持续按下
 
-const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_WIDTH = 800;     // opengl 窗体宽高
 const unsigned int SCR_HEIGHT = 600;
 
-Camera camera(glm::vec3(0.0f, 0.5f, 2.5f));
+Camera camera(glm::vec3(0.0f, 0.5f, 2.5f));     // 摄像机视角初始位置
 
-float deltaTime = 0.0f;
+float deltaTime = 0.0f;     // 计算时间差的变量
 float lastFrame = 0.0f;
 
-// FPS calculation variables
+// FPS 计算的变量
 float fpsAccumulator = 0.0f;
 int frameCount = 0;
-float fpsUpdateInterval = 1.0f; // Update FPS display every 1 second
-std::string fpsText = "FPS: 0.0"; // String to hold the FPS text for rendering
+float fpsUpdateInterval = 1.0f; // FPS 的更新值
+std::string fpsText = "FPS: 0.0"; // opengl 窗体左上角 FPS 的文字内容
 
 //MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
-MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
+MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
 // MillingManager millingManager; // 使用默认参数
 
 int main()
@@ -55,9 +55,10 @@ int main()
         return -1;
     }
 
-    // 创建 InputHandler 实例并设置回调
+    // 创建 InputHandler 实例并设置回调，因为后续会对模型进行移动，因此传入参数时，形参是引用
     InputHandler inputHandler(camera, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling, g_millingKeyPressed, deltaTime);
     glfwSetWindowUserPointer(window, &inputHandler); // 将handler实例指针传递给GLFW
+    // 回调函数：窗体大小、光标移动、滚轮事件、键盘输入
     glfwSetFramebufferSizeCallback(window, InputHandler::framebuffer_size_callback_glfw);
     glfwSetCursorPosCallback(window, InputHandler::mouse_callback_glfw);
     glfwSetScrollCallback(window, InputHandler::scroll_callback_glfw);
@@ -77,6 +78,7 @@ int main()
     TextRenderer textRenderer(SCR_WIDTH, SCR_HEIGHT);
     textRenderer.Load(FileSystem::getPath("resources/fonts/Antonio-Bold.ttf"), 24);
 
+    // 构建编译模型、点光源的着色器
     // build and compile shaders
     // -------------------------
     Shader ourShader("1.model_loading.vs", "1.model_loading.fs");
@@ -97,15 +99,9 @@ int main()
     float surfaceYThreshold = 0.01f;     // Y坐标的容差范围
     int quadtreeMaxLevels = 3;          // 四叉树最大层数
     int quadtreeMaxVertsPerNode = 20;   // 每个叶节点最大顶点数
-    // TODO: 检查您的 cubeModel 的实际表面Y值，并相应地调整 surfaceYValue 和 surfaceYThreshold。
-    // 例如，如果您的cube模型上表面是平的且Y=0.5，则 surfaceYValue可以设为0.5f。
-    // 如果模型是从Blender导出的，原点可能在模型的几何中心，或者底部。
-    // 您可能需要先检查一下 cubeModel.meshes[0].vertices[any_surface_vertex].Position.y 的值。
-    millingManager.initializeSpatialPartition(cubeModel, 
-                                            surfaceYValue, 
-                                            surfaceYThreshold, 
-                                            quadtreeMaxLevels, 
-                                            quadtreeMaxVertsPerNode);
+
+    // 初始化空间分区结构 (四叉树)
+    millingManager.initializeSpatialPartition(cubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
 
     // 线框模式
     // draw in wireframe
@@ -168,6 +164,7 @@ int main()
         ourShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
         ourShader.setFloat("material.shininess", 16.0f);
 
+        // 视图、投影转换
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();

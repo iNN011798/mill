@@ -24,6 +24,7 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
                                                 int quadtreeMaxVertsPerNode) {
     quadtree_.reset(); // Clear any existing quadtree
 
+    // 收集属于表面切削区域的顶点指针集合，然后计算出整个毛坯的 XZ 局部坐标范围
     std::vector<Vertex*> surfaceVertices;
     glm::vec2 minXZ(std::numeric_limits<float>::max());
     glm::vec2 maxXZ(std::numeric_limits<float>::lowest());
@@ -46,6 +47,7 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
         std::cout << "MillingManager: No surface vertices found to build Quadtree." << std::endl;
         return;
     }
+    // 构造一个毛坯模型的有效2d边界
     // Ensure bounds are valid (min < max)
     if (minXZ.x >= maxXZ.x || minXZ.y >= maxXZ.y) {
          // Handle degenerate case, e.g. all points on a line or single point.
@@ -57,19 +59,20 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
          if (minXZ.y >= maxXZ.y) maxXZ.y = minXZ.y + 0.1f; // Add a small epsilon
     }
 
-
+    // 构造一个四叉树的根节点，这个根节点代表了毛坯模型xz坐标平面内的范围，即一个矩形框（无论毛坯模型是否是矩形）
     quadtree_ = std::make_unique<Quadtree>(minXZ, maxXZ, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
     std::cout << "MillingManager: Building Quadtree with bounds: (" 
               << minXZ.x << ", " << minXZ.y << ") to (" 
               << maxXZ.x << ", " << maxXZ.y << ") for " 
               << surfaceVertices.size() << " vertices." << std::endl;
 
+    // 往根节点代表的四叉树中，插入节点指针，将表面顶点指针填充到四叉树中
     for (Vertex* vertex : surfaceVertices) {
         quadtree_->insert(vertex);
     }
     std::cout << "MillingManager: Quadtree built." << std::endl;
 
-#if 0
+#if 1
     // 新增：打印四叉树内容以供调试
     if (quadtree_) {
         std::cout << "MillingManager: Attempting to print Quadtree contents..." << std::endl;
