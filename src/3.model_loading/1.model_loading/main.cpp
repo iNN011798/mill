@@ -20,6 +20,7 @@
 #include "input_handler.h"
 #include "text_renderer.h"
 #include "light_source.h"
+#include "FPSRecorder.h" // 包含 FPSRecorder
 
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
@@ -36,11 +37,11 @@ Camera camera(glm::vec3(0.0f, 0.5f, 2.5f));     // 摄像机视角初始位置
 float deltaTime = 0.0f;     // 计算时间差的变量
 float lastFrame = 0.0f;
 
-// FPS 计算的变量
-float fpsAccumulator = 0.0f;
-int frameCount = 0;
-float fpsUpdateInterval = 1.0f; // FPS 的更新值
-std::string fpsText = "FPS: 0.0"; // opengl 窗体左上角 FPS 的文字内容
+// FPS 计算的变量 - 这些将被移入或由 FPSRecorder 管理
+// float fpsAccumulator = 0.0f;
+// int frameCount = 0;
+// float fpsUpdateInterval = 1.0f; // FPS 的更新值
+// std::string fpsText = "FPS: 0.0"; // opengl 窗体左上角 FPS 的文字内容
 
 //MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
 MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
@@ -55,8 +56,11 @@ int main()
         return -1;
     }
 
+    // 创建 FPSRecorder 实例
+    FPSRecorder fpsRecorder;
+
     // 创建 InputHandler 实例并设置回调，因为后续会对模型进行移动，因此传入参数时，形参是引用
-    InputHandler inputHandler(camera, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling, g_millingKeyPressed, deltaTime);
+    InputHandler inputHandler(camera, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling, g_millingKeyPressed, deltaTime, &fpsRecorder);
     glfwSetWindowUserPointer(window, &inputHandler); // 将handler实例指针传递给GLFW
     // 回调函数：窗体大小、光标移动、滚轮事件、键盘输入
     glfwSetFramebufferSizeCallback(window, InputHandler::framebuffer_size_callback_glfw);
@@ -117,22 +121,8 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // FPS Calculation
-        // ----------------------------------
-        fpsAccumulator += deltaTime;
-        frameCount++;
-        if (fpsAccumulator >= fpsUpdateInterval) {
-            double fps = 0.0;
-            if (fpsAccumulator > 0) { // Avoid division by zero
-                fps = static_cast<double>(frameCount) / fpsAccumulator;
-            }
-            std::stringstream ss;
-            ss << "FPS: " << std::fixed << std::setprecision(1) << fps;
-            fpsText = ss.str();
-            
-            frameCount = 0;
-            fpsAccumulator = 0.0f;
-        }
+        // 使用 FPSRecorder 更新 FPS
+        fpsRecorder.Update(deltaTime);
 
         // input
         // -----
@@ -183,7 +173,7 @@ int main()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_DEPTH_TEST);
-        textRenderer.RenderText(fpsText, 10.0f, SCR_HEIGHT - 30.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        textRenderer.RenderText(fpsRecorder.GetFPSText(), 10.0f, SCR_HEIGHT - 30.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
         // 恢复OpenGL状态
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);

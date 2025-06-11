@@ -1,5 +1,6 @@
 #include "input_handler.h"
 #include <learnopengl/camera.h> // 确保 Camera 定义可见
+#include "FPSRecorder.h" // 包含 FPSRecorder 头文件
 #include <iostream> // 用于输出
 
 InputHandler::InputHandler(Camera& camera,
@@ -7,13 +8,15 @@ InputHandler::InputHandler(Camera& camera,
                            glm::vec3& toolBaseWorldPosition,
                            bool& enableMilling,
                            bool& millingKeyPressed,
-                           float& deltaTime)
+                           float& deltaTime,
+                           FPSRecorder* fpsRecorder) // 接收 FPSRecorder 指针
     : camera_(camera),
       cubeWorldPosition_(cubeWorldPosition),
       toolBaseWorldPosition_(toolBaseWorldPosition),
       enableMilling_(enableMilling),
       millingKeyPressed_(millingKeyPressed),
       deltaTime_(deltaTime),
+      fpsRecorder_(fpsRecorder), // 初始化 FPSRecorder 指针
       lastX(SCR_WIDTH / 2.0f),
       lastY(SCR_HEIGHT / 2.0f),
       firstMouse(true) {}
@@ -121,6 +124,15 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
             else std::cout << "Milling DISABLED" << std::endl;
         } else if (action == GLFW_RELEASE) {
             millingKeyPressed_ = false; // M键已释放，可以再次处理按下事件
+        }
+    }
+
+    // 添加对 'R' 键的响应，用于开始/停止FPS记录
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        if (fpsRecorder_)
+        {
+            fpsRecorder_->ToggleRecording();
         }
     }
 }
