@@ -12,6 +12,7 @@ extern const unsigned int SCR_WIDTH;
 extern const unsigned int SCR_HEIGHT;
 
 class FPSRecorder; // 前向声明
+class PathManager; // 前向声明
 
 class InputHandler {
 public:
@@ -21,7 +22,8 @@ public:
                  bool& enableMilling,
                  bool& millingKeyPressed,
                  float& deltaTime,
-                 FPSRecorder* fpsRecorder); // 添加 FPSRecorder 指针
+                 FPSRecorder* fpsRecorder,
+                 PathManager* pathManager); // 添加 PathManager 指针
 
     void processInput(GLFWwindow *window);
 
@@ -51,6 +53,7 @@ private:
     bool& millingKeyPressed_;
     float& deltaTime_; // deltaTime 需要从主循环更新或通过InputHandler自己管理
     FPSRecorder* fpsRecorder_; // 指向 FPSRecorder 实例
+    PathManager* pathManager_; // 指向 PathManager 实例
 };
 
 #endif // INPUT_HANDLER_H 

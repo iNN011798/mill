@@ -159,7 +159,7 @@ bool MillingManager::processMilling(Model& cubeModel,
 
     } else {
         // Fallback to old behavior if Quadtree is not initialized (or keep this as an error/warning)
-        std::cerr << "MillingManager: Quadtree not initialized. Falling back to unoptimized milling." << std::endl;
+        //std::cerr << "MillingManager: Quadtree not initialized. Falling back to unoptimized milling." << std::endl;
         for (unsigned int i = 0; i < cubeModel.meshes.size(); ++i) {
             Mesh& current_mesh = cubeModel.meshes[i];
             for (unsigned int j = 0; j < current_mesh.vertices.size(); ++j) {

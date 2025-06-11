@@ -1,6 +1,7 @@
 #include "input_handler.h"
 #include <learnopengl/camera.h> // 确保 Camera 定义可见
 #include "FPSRecorder.h" // 包含 FPSRecorder 头文件
+#include "PathManager.h" // 包含 PathManager 头文件
 #include <iostream> // 用于输出
 
 InputHandler::InputHandler(Camera& camera,
@@ -9,14 +10,16 @@ InputHandler::InputHandler(Camera& camera,
                            bool& enableMilling,
                            bool& millingKeyPressed,
                            float& deltaTime,
-                           FPSRecorder* fpsRecorder) // 接收 FPSRecorder 指针
+                           FPSRecorder* fpsRecorder,
+                           PathManager* pathManager) // 接收指针
     : camera_(camera),
       cubeWorldPosition_(cubeWorldPosition),
       toolBaseWorldPosition_(toolBaseWorldPosition),
       enableMilling_(enableMilling),
       millingKeyPressed_(millingKeyPressed),
       deltaTime_(deltaTime),
-      fpsRecorder_(fpsRecorder), // 初始化 FPSRecorder 指针
+      fpsRecorder_(fpsRecorder), 
+      pathManager_(pathManager), // 初始化 PathManager 指针
       lastX(SCR_WIDTH / 2.0f),
       lastY(SCR_HEIGHT / 2.0f),
       firstMouse(true) {}
@@ -34,17 +37,21 @@ void InputHandler::processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera_.ProcessKeyboard(RIGHT, deltaTime_);
 
-    // 毛坯模型控制 (箭头键)
-    const float cubeMoveSpeed = 0.5f;
-    float actualCubeMoveSpeed = cubeMoveSpeed * deltaTime_;
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        cubeWorldPosition_.z -= actualCubeMoveSpeed;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        cubeWorldPosition_.z += actualCubeMoveSpeed;
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        cubeWorldPosition_.x -= actualCubeMoveSpeed;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        cubeWorldPosition_.x += actualCubeMoveSpeed;
+    // 当自动路径未激活时，才允许手动控制毛坯
+    if (!pathManager_ || (pathManager_ && !pathManager_->IsPathActive()))
+    {
+        // 毛坯模型控制 (箭头键)
+        const float cubeMoveSpeed = 0.5f;
+        float actualCubeMoveSpeed = cubeMoveSpeed * deltaTime_;
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+            cubeWorldPosition_.z -= actualCubeMoveSpeed;
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+            cubeWorldPosition_.z += actualCubeMoveSpeed;
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+            cubeWorldPosition_.x -= actualCubeMoveSpeed;
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+            cubeWorldPosition_.x += actualCubeMoveSpeed;
+    }
 
     // 刀具模型控制（page_up/down键）
     const float toolMoveSpeed = 0.5f;
@@ -133,6 +140,15 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
         if (fpsRecorder_)
         {
             fpsRecorder_->ToggleRecording();
+        }
+    }
+
+    // 添加对 'E' 键的响应，用于开始'e'路径加工
+    if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    {
+        if (pathManager_)
+        {
+            pathManager_->StartEPath();
         }
     }
 }

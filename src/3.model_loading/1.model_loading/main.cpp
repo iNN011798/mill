@@ -21,6 +21,7 @@
 #include "text_renderer.h"
 #include "light_source.h"
 #include "FPSRecorder.h" // 包含 FPSRecorder
+#include "PathManager.h" // 包含 PathManager
 
 // 全局状态，用于存储模型位置
 glm::vec3 g_cubeWorldPosition(0.0f, 0.0f, 0.0f); // 毛坯模型的世界坐标
@@ -44,7 +45,7 @@ float lastFrame = 0.0f;
 // std::string fpsText = "FPS: 0.0"; // opengl 窗体左上角 FPS 的文字内容
 
 //MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
-MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
+MillingManager millingManager(0.03f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
 // MillingManager millingManager; // 使用默认参数
 
 int main()
@@ -59,8 +60,12 @@ int main()
     // 创建 FPSRecorder 实例
     FPSRecorder fpsRecorder;
 
+    // 创建 PathManager 实例
+    const float pathMoveSpeed = 0.5f; // 定义加工路径的移动速度
+    PathManager pathManager(g_cubeWorldPosition, pathMoveSpeed);
+
     // 创建 InputHandler 实例并设置回调，因为后续会对模型进行移动，因此传入参数时，形参是引用
-    InputHandler inputHandler(camera, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling, g_millingKeyPressed, deltaTime, &fpsRecorder);
+    InputHandler inputHandler(camera, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling, g_millingKeyPressed, deltaTime, &fpsRecorder, &pathManager);
     glfwSetWindowUserPointer(window, &inputHandler); // 将handler实例指针传递给GLFW
     // 回调函数：窗体大小、光标移动、滚轮事件、键盘输入
     glfwSetFramebufferSizeCallback(window, InputHandler::framebuffer_size_callback_glfw);
@@ -101,11 +106,11 @@ int main()
     // 您需要根据您的模型调整这些参数
     float surfaceYValue = 0.0f;         // 假设表面主要在 Y=0 附近 (需要根据您的模型调整)
     float surfaceYThreshold = 0.01f;     // Y坐标的容差范围
-    int quadtreeMaxLevels = 3;          // 四叉树最大层数
+    int quadtreeMaxLevels = 3;          // 四叉树最大层数 (从 3 增加到 8)
     int quadtreeMaxVertsPerNode = 20;   // 每个叶节点最大顶点数
 
     // 初始化空间分区结构 (四叉树)
-    millingManager.initializeSpatialPartition(cubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
+    //millingManager.initializeSpatialPartition(cubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
 
     // 线框模式
     // draw in wireframe
@@ -128,6 +133,9 @@ int main()
         // -----
         // processInput(window); // 由 InputHandler 在主循环中处理或通过回调处理
         inputHandler.processInput(window); // 处理持续按键的输入
+
+        // 更新自动加工路径
+        pathManager.Update(deltaTime);
 
         // 使用 MillingManager 处理铣削逻辑
         millingManager.processMilling(cubeModel, g_cubeWorldPosition, g_toolBaseWorldPosition, g_enableMilling);
