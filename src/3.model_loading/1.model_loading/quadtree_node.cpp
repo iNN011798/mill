@@ -1,10 +1,10 @@
 #include "quadtree_node.h"
 #include "quadtree.h" // 需要访问 Quadtree 的 maxLevels 和 maxVerticesPerNode
-#include <algorithm> // For std::max and std::min for intersection checks
+#include <algorithm> // For std::max and std::min for intersection checks, and std::sort
 #include <iostream> // For std::cout
 
 QuadtreeNode::QuadtreeNode(glm::vec2 minB, glm::vec2 maxB, int lvl, Quadtree* ownerTree)
-    : minBounds(minB), maxBounds(maxB), level(lvl), tree(ownerTree) {
+    : minBounds(minB), maxBounds(maxB), level(lvl), tree(ownerTree), isZSorted(false) {
     for (int i = 0; i < 4; ++i) {
         children[i] = nullptr;
     }
@@ -78,6 +78,46 @@ void QuadtreeNode::insert(Vertex* vertex) {
     }
 }
 
+void QuadtreeNode::optimize() {
+    // 如果是内部节点，则递归优化子节点
+    if (!isLeaf()) {
+        for (int i = 0; i < 4; ++i) {
+            if (children[i]) {
+                children[i]->optimize();
+            }
+        }
+        return;
+    }
+
+    // 如果是叶子节点，并且顶点数量大于一个阈值，则进行Z阶排序
+    // 我们只对"臃肿"的叶子节点进行优化，避免不必要的计算
+    const size_t Z_SORT_THRESHOLD = 50; 
+    if (vertices.size() > Z_SORT_THRESHOLD) {
+        isZSorted = true;
+        
+        // 预留空间以提高效率
+        zSortedVertices.reserve(vertices.size());
+
+        // 计算每个顶点的Morton码
+        for (Vertex* vertex : vertices) {
+            uint64_t mortonCode = MortonCode::getVertexMortonCode(vertex, minBounds, maxBounds);
+            zSortedVertices.emplace_back(mortonCode, vertex);
+        }
+
+        // 根据Morton码进行排序
+        std::sort(zSortedVertices.begin(), zSortedVertices.end(), 
+            [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
+
+        // 优化后，可以清空原始的顶点数组以节省内存
+        vertices.clear();
+        vertices.shrink_to_fit();
+        
+        // std::cout << "Optimized a leaf node with " << zSortedVertices.size() << " vertices using Z-order curve." << std::endl;
+    }
+}
+
 // 检查点是否在节点的XZ边界内
 bool QuadtreeNode::containsPoint(const glm::vec3& pointPosition) const {
     return (pointPosition.x >= minBounds.x && pointPosition.x <= maxBounds.x &&
@@ -120,17 +160,69 @@ void QuadtreeNode::queryRange(const glm::vec2& center, float radius, std::vector
     }
 
     if (isLeaf()) {
-        // 如果是叶节点，检查此节点中的所有顶点
-        for (Vertex* vertex : vertices) {
-            // 再次确认顶点在圆形范围内 (因为节点边界是矩形)
-            float dx = vertex->Position.x - center.x;
-            float dz = vertex->Position.z - center.y; // center.y is query_center_z
-            if ((dx * dx + dz * dz) <= (radius * radius)) {
-                resultVertices.push_back(vertex);
+        // 如果是经过Z阶优化的叶子节点
+        if (isZSorted) {
+            // --- "中心扩散搜索"查询路径 (已修正bug) ---
+            const float radiusSq = radius * radius;
+
+            // 1. 计算查询中心点的Morton码
+            uint64_t centerCode = MortonCode::getMortonCodeFromCoord(
+                {center.x, 0.0f, center.y}, // 直接使用坐标
+                minBounds, maxBounds
+            );
+
+            // 2. 使用二分查找快速定位到中心点在排序数组中的位置
+            auto it_center = std::lower_bound(zSortedVertices.begin(), zSortedVertices.end(), centerCode,
+                [](const std::pair<uint64_t, Vertex*>& element, uint64_t value) {
+                    return element.first < value;
+                });
+
+            // 3. 从中心点向前（向大）搜索
+            for (auto it = it_center; it != zSortedVertices.end(); ++it) {
+                Vertex* vertex = it->second;
+                float dx = vertex->Position.x - center.x;
+                float dz = vertex->Position.z - center.y;
+                if ((dx * dx + dz * dz) <= radiusSq) {
+                    resultVertices.push_back(vertex);
+                } else {
+                    // 启发式剪枝：如果一个点在X轴上的距离已经超过了查询半径，
+                    // 那么后续的点在圆内的可能性就很小了（因为Z曲线优先填充X方向）。
+#if 1
+                    if (std::abs(dx) > radius) {
+                        break;
+                    }
+#endif
+                }
+            }
+            
+            // 4. 从中心点向后（向小）搜索，使用反向迭代器以保证安全和代码简洁性
+            for (auto it = std::reverse_iterator<decltype(it_center)>(it_center); it != zSortedVertices.rend(); ++it) {
+                Vertex* vertex = it->second; // it->second 是 Vertex*
+                float dx = vertex->Position.x - center.x;
+                float dz = vertex->Position.z - center.y;
+                if ((dx * dx + dz * dz) <= radiusSq) {
+                    resultVertices.push_back(vertex);
+                } else {
+#if 1
+                    if (std::abs(dx) > radius) {
+                        break;
+                    }
+#endif
+                }
+            }
+        } else {
+            // --- 原始路径：非优化叶子节点，线性扫描 ---
+            float radiusSq = radius * radius;
+            for (Vertex* vertex : vertices) {
+                float dx = vertex->Position.x - center.x;
+                float dz = vertex->Position.z - center.y;
+                if ((dx * dx + dz * dz) <= radiusSq) {
+                    resultVertices.push_back(vertex);
+                }
             }
         }
     } else {
-        // 如果不是叶节点，递归查询子节点
+        // 如果是内部节点，则递归查询子节点
         for (int i = 0; i < 4; ++i) {
             if (children[i]) {
                 children[i]->queryRange(center, radius, resultVertices);

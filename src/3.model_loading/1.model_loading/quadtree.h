@@ -20,6 +20,9 @@ public:
     // 查询与给定圆形区域相交的顶点 (XZ平面)
     std::vector<Vertex*> queryRange(const glm::vec2& center, float radius) const;
 
+    // 新增：对树的叶子节点进行Z阶曲线优化
+    void optimize();
+
     void clear(); // 清空树（删除所有节点和顶点指针）
 
     // 新增：打印整个树的内容 (用于调试)

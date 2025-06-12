@@ -43,6 +43,8 @@ public:
                                     int quadtreeMaxLevels, 
                                     int quadtreeMaxVertsPerNode);
 
+    long long int getNumVertices();
+    static long long int numVertices;
 private:
     float toolRadius_;
     float toolTipLocalYOffset_;
@@ -50,7 +52,7 @@ private:
     ToolType toolheadType_; 
     float Y_ball_center;
     float new_Y;
-
+    
     std::unique_ptr<Quadtree> quadtree_; // 使用智能指针管理四叉树
 };
 

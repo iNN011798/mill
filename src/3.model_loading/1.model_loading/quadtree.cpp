@@ -17,6 +17,12 @@ void Quadtree::insert(Vertex* vertex) {
     // else: Vertex is outside the bounds of the quadtree, decide how to handle (e.g., ignore, log error)
 }
 
+void Quadtree::optimize() {
+    if (root) {
+        root->optimize();
+    }
+}
+
 std::vector<Vertex*> Quadtree::queryRange(const glm::vec2& center, float radius) const {
     std::vector<Vertex*> resultVertices;
     if (root) {

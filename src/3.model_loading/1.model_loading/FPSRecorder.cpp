@@ -3,7 +3,7 @@
 #include <numeric>   // For std::accumulate
 #include <iomanip>   // For std::fixed, std::setprecision
 #include <sstream>   // For std::stringstream
-
+#include "milling_manager.h"
 FPSRecorder::FPSRecorder()
     : m_isRecording(false),
       m_fpsText("FPS: 0.0"),
@@ -61,6 +61,7 @@ const std::string& FPSRecorder::GetFPSText() const
 void FPSRecorder::StartRecording()
 {
     m_recordedFPS.clear();
+    MillingManager::numVertices = 0;
     std::cout << "======== FPS Recording Started ========" << std::endl;
 }
 
@@ -77,6 +78,7 @@ void FPSRecorder::StopRecordingAndReport()
     double average = sum / m_recordedFPS.size();
 
     std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Num of Candidate Vertices: " << MillingManager::numVertices << std::endl;
     std::cout << "Average FPS: " << average << std::endl;
     std::cout << "Recorded FPS values (" << m_recordedFPS.size() << " samples):" << std::endl;
     for (size_t i = 0; i < m_recordedFPS.size(); ++i)

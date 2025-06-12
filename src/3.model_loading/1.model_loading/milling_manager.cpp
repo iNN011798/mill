@@ -6,12 +6,17 @@
 #include <limits> // For std::numeric_limits
 #include <cmath>  // For std::abs and std::sqrt
 
+// 初始化静态成员变量
+long long int MillingManager::numVertices = 0;
+
 MillingManager::MillingManager(float toolRadius, float toolTipLocalYOffset, float cubeMinLocalY, ToolType toolType)
     : toolRadius_(toolRadius),
       toolTipLocalYOffset_(toolTipLocalYOffset),
       cubeMinLocalY_(cubeMinLocalY),
       toolheadType_(toolType),
-      quadtree_(nullptr) {}
+      quadtree_(nullptr) {
+    numVertices = 0;
+}
 
 MillingManager::~MillingManager() {
     // std::unique_ptr will automatically handle deletion of the Quadtree object
@@ -71,7 +76,13 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
         quadtree_->insert(vertex);
     }
     std::cout << "MillingManager: Quadtree built." << std::endl;
-
+#if 0
+    // ---- Z阶曲线优化 ----
+    std::cout << "MillingManager: Optimizing Quadtree leaves with Z-order curve..." << std::endl;
+    quadtree_->optimize();
+    std::cout << "MillingManager: Quadtree optimization finished." << std::endl;
+    // ---- Z阶曲线优化结束 ----
+#endif
 #if 1
     // 新增：打印四叉树内容以供调试
     if (quadtree_) {
@@ -81,6 +92,11 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
         std::cout << "MillingManager: Quadtree is null, cannot print contents." << std::endl;
     }
 #endif
+}
+
+long long int MillingManager::getNumVertices()
+{
+    return numVertices;
 }
 
 bool MillingManager::processMilling(Model& cubeModel,
@@ -108,6 +124,7 @@ bool MillingManager::processMilling(Model& cubeModel,
         std::vector<Vertex*> candidateVertices = quadtree_->queryRange(glm::vec2(tool_tip_cube_local.x, tool_tip_cube_local.z), toolRadius_);
         //std::cout << "Queried vertices: " << candidateVertices.size() << std::endl;
 
+        numVertices += candidateVertices.size();
         for (Vertex* current_vertex_ptr : candidateVertices) {
             Vertex& current_vertex = *current_vertex_ptr; // Dereference pointer
             

@@ -45,7 +45,7 @@ float lastFrame = 0.0f;
 // std::string fpsText = "FPS: 0.0"; // opengl 窗体左上角 FPS 的文字内容
 
 //MillingManager millingManager(0.01f, 0.39f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数
-MillingManager millingManager(0.03f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
+MillingManager millingManager(0.01f, -0.11f, -0.3f, ToolType::ball); // 示例：使用球头刀，并传入参数（刀具半径、刀头y坐标偏移量、毛坯底面偏移量）
 // MillingManager millingManager; // 使用默认参数
 
 int main()
@@ -106,12 +106,12 @@ int main()
     // 您需要根据您的模型调整这些参数
     float surfaceYValue = 0.0f;         // 假设表面主要在 Y=0 附近 (需要根据您的模型调整)
     float surfaceYThreshold = 0.01f;     // Y坐标的容差范围
-    int quadtreeMaxLevels = 3;          // 四叉树最大层数 (从 3 增加到 8)
+    int quadtreeMaxLevels = 2;          // 四叉树最大层数 (从 3 增加到 8)
     int quadtreeMaxVertsPerNode = 20;   // 每个叶节点最大顶点数
-
+#if 1
     // 初始化空间分区结构 (四叉树)
-    //millingManager.initializeSpatialPartition(cubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
-
+    millingManager.initializeSpatialPartition(cubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
+#endif
     // 线框模式
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
