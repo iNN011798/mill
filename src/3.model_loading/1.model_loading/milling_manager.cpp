@@ -76,7 +76,7 @@ void MillingManager::initializeSpatialPartition(Model& cubeModel,
         quadtree_->insert(vertex);
     }
     std::cout << "MillingManager: Quadtree built." << std::endl;
-#if 0
+#if 1
     // ---- Z½×ÇúÏßÓÅ»¯ ----
     std::cout << "MillingManager: Optimizing Quadtree leaves with Z-order curve..." << std::endl;
     quadtree_->optimize();

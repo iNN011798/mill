@@ -21,7 +21,7 @@ struct Character {
 class TextRenderer
 {
 public:
-    TextRenderer(unsigned int screenWidth, unsigned int screenHeight);
+    TextRenderer(unsigned int screenWidth, unsigned int screenHeight, const char* vertexPath, const char* fragmentPath);
     ~TextRenderer();
 
     // 从文件加载字体

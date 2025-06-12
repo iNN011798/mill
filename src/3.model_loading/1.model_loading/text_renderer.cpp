@@ -6,9 +6,10 @@
 #include FT_FREETYPE_H
 
 #include <glm/gtc/matrix_transform.hpp>
+// #include "learnopengl/filesystem.h" // 移除此行以解决链接器错误
 
-TextRenderer::TextRenderer(unsigned int screenWidth, unsigned int screenHeight)
-    : shader("text.vs", "text.fs")
+TextRenderer::TextRenderer(unsigned int screenWidth, unsigned int screenHeight, const char* vertexPath, const char* fragmentPath)
+    : shader(vertexPath, fragmentPath)
 {
     // 配置着色器
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth), 0.0f, static_cast<float>(screenHeight));

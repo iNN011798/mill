@@ -64,12 +64,12 @@ void Application::init()
     configureGlobalOpenGLState();
 
     // Initialize text renderer
-    m_TextRenderer = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
+    m_TextRenderer = new TextRenderer(SCR_WIDTH, SCR_HEIGHT, FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/text.vs").c_str(), FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/text.fs").c_str());
     m_TextRenderer->Load(FileSystem::getPath("resources/fonts/Antonio-Bold.ttf"), 24);
 
     // Build and compile shaders
-    m_ModelShader = new Shader("1.model_loading.vs", "1.model_loading.fs");
-    m_LightCubeShader = new Shader("light_cube.vs", "light_cube.fs");
+    m_ModelShader = new Shader(FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/1.model_loading.vs").c_str(), FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/1.model_loading.fs").c_str());
+    m_LightCubeShader = new Shader(FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/light_cube.vs").c_str(), FileSystem::getPath("src/3.model_loading/1.model_loading/shaders/light_cube.fs").c_str());
 
     // Create light source
     m_Light = new LightSource(glm::vec3(0.5f, 0.7f, 2.0f));
@@ -83,7 +83,9 @@ void Application::init()
     float surfaceYThreshold = 0.01f;
     int quadtreeMaxLevels = 2;
     int quadtreeMaxVertsPerNode = 20;
+#if 1
     m_MillingManager.initializeSpatialPartition(*m_CubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
+#endif
 }
 
 void Application::mainLoop()
