@@ -1,4 +1,5 @@
 #include "input_handler.h"
+
 #include <learnopengl/camera.h> // 确保 Camera 定义可见
 #include "FPSRecorder.h" // 包含 FPSRecorder 头文件
 #include "PathManager.h" // 包含 PathManager 头文件
@@ -11,7 +12,9 @@ InputHandler::InputHandler(Camera& camera,
                            bool& millingKeyPressed,
                            float& deltaTime,
                            FPSRecorder* fpsRecorder,
-                           PathManager* pathManager) // 接收指针
+                           PathManager* pathManager, // 接收指针
+                           unsigned int screenWidth,
+                           unsigned int screenHeight)
     : camera_(camera),
       cubeWorldPosition_(cubeWorldPosition),
       toolBaseWorldPosition_(toolBaseWorldPosition),
@@ -20,8 +23,8 @@ InputHandler::InputHandler(Camera& camera,
       deltaTime_(deltaTime),
       fpsRecorder_(fpsRecorder), 
       pathManager_(pathManager), // 初始化 PathManager 指针
-      lastX(SCR_WIDTH / 2.0f),
-      lastY(SCR_HEIGHT / 2.0f),
+      lastX(screenWidth / 2.0f),
+      lastY(screenHeight / 2.0f),
       firstMouse(true) {}
 
 // 在processInput中处理持续按键的动作

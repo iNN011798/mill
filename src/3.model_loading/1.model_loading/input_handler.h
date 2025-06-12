@@ -8,9 +8,6 @@
 #include <learnopengl/camera.h>
 #include <glm/glm.hpp>
 
-extern const unsigned int SCR_WIDTH;
-extern const unsigned int SCR_HEIGHT;
-
 class FPSRecorder; // 前向声明
 class PathManager; // 前向声明
 
@@ -23,7 +20,9 @@ public:
                  bool& millingKeyPressed,
                  float& deltaTime,
                  FPSRecorder* fpsRecorder,
-                 PathManager* pathManager); // 添加 PathManager 指针
+                 PathManager* pathManager,
+                 unsigned int screenWidth, 
+                 unsigned int screenHeight);
 
     void processInput(GLFWwindow *window);
 
