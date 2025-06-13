@@ -3,6 +3,10 @@
 #include <numeric>   // For std::accumulate
 #include <iomanip>   // For std::fixed, std::setprecision
 #include <sstream>   // For std::stringstream
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <direct.h>  // For _mkdir
 #include "milling_manager.h"
 FPSRecorder::FPSRecorder()
     : m_isRecording(false),
@@ -74,18 +78,50 @@ void FPSRecorder::StopRecordingAndReport()
         return;
     }
 
+    // --- Create a log file ---
+    // Create a directory for logs if it doesn't exist
+    // The executable is typically in a subdirectory like 'build/bin/Debug', 
+    // so we go up three levels to the project root.
+    _mkdir("../../logs");
+
+    // Generate a timestamp for the filename
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss_time;
+    ss_time << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S");
+    std::string filename = "../../logs/fps_log_" + ss_time.str() + ".txt";
+
+    std::ofstream logFile(filename);
+    if (!logFile.is_open())
+    {
+        std::cerr << "Failed to open log file: " << filename << std::endl;
+        return;
+    }
+    // --- End of file creation ---
+
+
     double sum = std::accumulate(m_recordedFPS.begin(), m_recordedFPS.end(), 0.0);
     double average = sum / m_recordedFPS.size();
 
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << "Num of Candidate Vertices: " << MillingManager::numVertices << std::endl;
-    std::cout << "Average FPS: " << average << std::endl;
-    std::cout << "Recorded FPS values (" << m_recordedFPS.size() << " samples):" << std::endl;
+    std::stringstream report;
+    report << std::fixed << std::setprecision(2);
+    report << "Num of Candidate Vertices: " << MillingManager::numVertices << std::endl;
+    report << "Average FPS: " << average << std::endl;
+    report << "Recorded FPS values (" << m_recordedFPS.size() << " samples):" << std::endl;
     for (size_t i = 0; i < m_recordedFPS.size(); ++i)
     {
-        std::cout << m_recordedFPS[i] << ( (i % 10 == 9) ? "\n" : "\t" );
+        report << m_recordedFPS[i] << ( (i % 10 == 9) ? "\n" : "\t" );
     }
-    std::cout << std::endl << "=====================================" << std::endl;
+    report << std::endl << "=====================================" << std::endl;
+
+    // Print to console
+    std::cout << report.str();
+
+    // Write to file
+    logFile << report.str();
+    logFile.close();
+
+    std::cout << "FPS data saved to " << filename << std::endl;
 
     m_recordedFPS.clear();
 } 

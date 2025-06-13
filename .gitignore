@@ -3,6 +3,7 @@
 /bin/
 /out/
 .vs/
+/logs/
 
 # VSCode、CLion、QtCreator 等临时文件（可选）
 .vscode/
