@@ -9,6 +9,7 @@
 
 // 初始化静态成员变量
 long long int MillingManager::numVertices = 0;
+long long int MillingManager::numModifiedVertices = 0;
 
 MillingManager::MillingManager(float toolRadius, float toolTipLocalYOffset, float cubeMinLocalY, ToolType toolType)
     : toolRadius_(toolRadius),
@@ -131,46 +132,50 @@ bool MillingManager::processMilling(Model& cubeModel,
             
             // XZ distance check might be redundant if queryRange is accurate enough, but it's safer.
             // The queryRange in QuadtreeNode already does a precise circle check for leaf nodes.
-            // float dx = current_vertex.Position.x - tool_tip_cube_local.x;
-            // float dz = current_vertex.Position.z - tool_tip_cube_local.z;
-            // float dist_xz_squared = dx * dx + dz * dz;
-            // if (dist_xz_squared < (toolRadius_ * toolRadius_)) { // This check is effectively done by queryRange
+            // BUG FIX: The check below is NOT redundant. The query returns all vertices in intersecting
+            // nodes, not just vertices within the circle. This check is CRITICAL.
+            float dx = current_vertex.Position.x - tool_tip_cube_local.x;
+            float dz = current_vertex.Position.z - tool_tip_cube_local.z;
+            float dist_xz_squared = dx * dx + dz * dz;
+            if (dist_xz_squared < (toolRadius_ * toolRadius_)) { 
 
-            float target_y_cut = glm::max(tool_tip_cube_local.y, cubeMinLocalY_);
-            if (current_vertex.Position.y > target_y_cut) {
-                float old_y = current_vertex.Position.y;
-                switch (toolheadType_) {
-                    case ToolType::flat:
-                        current_vertex.Position.y = target_y_cut;
-                        current_vertex.Color = glm::vec3(1.0f, 1.0f, 1.0f); // Set color to red
-                        // 对于平面切削，法线直接指向上方 (Y轴正方向)
-                        current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
-                        break;
-                    case ToolType::ball: {
-                        // For ball nose, the effective cutting Y depends on XZ distance from tool center
-                        float dx_ball = current_vertex.Position.x - tool_tip_cube_local.x;
-                        float dz_ball = current_vertex.Position.z - tool_tip_cube_local.z;
-                        float dist_xz_squared_ball = dx_ball * dx_ball + dz_ball * dz_ball;
-                        float radius_squared = toolRadius_ * toolRadius_;
-                        if (dist_xz_squared_ball < radius_squared) { // Ensure it's within the tool's footprint for ball calculation
-                            float y_offset_ball = std::sqrt(radius_squared - dist_xz_squared_ball);
-                            float ball_surface_y = tool_tip_cube_local.y + toolRadius_ - y_offset_ball; // Lowest point of tool is tool_tip_cube_local.y
-                            float actual_cut_y = glm::max(ball_surface_y, cubeMinLocalY_);                             
-                            if (current_vertex.Position.y > actual_cut_y) {
-                                current_vertex.Position.y = actual_cut_y;
-                                current_vertex.Color = glm::vec3(1.0f, 1.0f, 1.0f); // Set color to red
-                                // 对于球面切削，法线是从球心指向顶点位置
-                                glm::vec3 sphere_center_local = tool_tip_cube_local + glm::vec3(0.0f, toolRadius_, 0.0f);
-                                current_vertex.Normal = glm::normalize(current_vertex.Position - sphere_center_local);
-                            }
-                        } // else: vertex is outside the direct spherical cut, no change from ball specific part
-                        break;
+                float target_y_cut = glm::max(tool_tip_cube_local.y, cubeMinLocalY_);
+                if (current_vertex.Position.y > target_y_cut) {
+                    float old_y = current_vertex.Position.y;
+                    switch (toolheadType_) {
+                        case ToolType::flat:
+                            current_vertex.Position.y = target_y_cut;
+                            current_vertex.Color = glm::vec3(1.0f, 1.0f, 1.0f); // Set color to red
+                            // 对于平面切削，法线直接指向上方 (Y轴正方向)
+                            current_vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+                            break;
+                        case ToolType::ball: {
+                            // For ball nose, the effective cutting Y depends on XZ distance from tool center
+                            float dx_ball = current_vertex.Position.x - tool_tip_cube_local.x;
+                            float dz_ball = current_vertex.Position.z - tool_tip_cube_local.z;
+                            float dist_xz_squared_ball = dx_ball * dx_ball + dz_ball * dz_ball;
+                            float radius_squared = toolRadius_ * toolRadius_;
+                            if (dist_xz_squared_ball < radius_squared) { // Ensure it's within the tool's footprint for ball calculation
+                                float y_offset_ball = std::sqrt(radius_squared - dist_xz_squared_ball);
+                                float ball_surface_y = tool_tip_cube_local.y + toolRadius_ - y_offset_ball; // Lowest point of tool is tool_tip_cube_local.y
+                                float actual_cut_y = glm::max(ball_surface_y, cubeMinLocalY_);                             
+                                if (current_vertex.Position.y > actual_cut_y) {
+                                    current_vertex.Position.y = actual_cut_y;
+                                    current_vertex.Color = glm::vec3(1.0f, 1.0f, 1.0f); // Set color to red
+                                    // 对于球面切削，法线是从球心指向顶点位置
+                                    glm::vec3 sphere_center_local = tool_tip_cube_local + glm::vec3(0.0f, toolRadius_, 0.0f);
+                                    current_vertex.Normal = glm::normalize(current_vertex.Position - sphere_center_local);
+                                }
+                            } // else: vertex is outside the direct spherical cut, no change from ball specific part
+                            break;
+                        }
+                        default:
+                            break;
                     }
-                    default:
-                        break;
-                }
-                if (std::abs(current_vertex.Position.y - old_y) > 0.00001f) { // Check if Y actually changed
-                     vertices_modified = true;
+                    if (std::abs(current_vertex.Position.y - old_y) > 0.00001f) { // Check if Y actually changed
+                         vertices_modified = true;
+                         numModifiedVertices++;
+                    }
                 }
             }
         }
@@ -216,6 +221,7 @@ bool MillingManager::processMilling(Model& cubeModel,
                         }
                         if (std::abs(current_vertex.Position.y - old_y) > 0.00001f) {
                             vertices_modified = true;
+                            numModifiedVertices++;
                         }
                     }
                 }

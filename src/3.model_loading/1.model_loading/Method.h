@@ -14,10 +14,10 @@
 
 // --- 性能优化配置 ---
 // 设置为 1 启用四叉树空间分区, 设置为 0 使用暴力遍历
-#define ENABLE_QUADTREE_OPTIMIZATION 1
+#define ENABLE_QUADTREE_OPTIMIZATION 0
 
 // 设置为 1 在构建四叉树后启用Z阶曲线优化
-#define ENABLE_Z_ORDER_OPTIMIZATION 1
+#define ENABLE_Z_ORDER_OPTIMIZATION 0
 
 // 设置为 1 在Z阶曲线优化的查询中启用启发式剪枝
 #define ENABLE_Z_ORDER_QUERY_HEURISTIC_PRUNING 0

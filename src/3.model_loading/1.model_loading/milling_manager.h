@@ -45,6 +45,8 @@ public:
 
     long long int getNumVertices();
     static long long int numVertices;
+    static long long int numModifiedVertices;
+
 private:
     float toolRadius_;
     float toolTipLocalYOffset_;

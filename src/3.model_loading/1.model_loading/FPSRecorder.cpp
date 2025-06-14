@@ -66,6 +66,7 @@ void FPSRecorder::StartRecording()
 {
     m_recordedFPS.clear();
     MillingManager::numVertices = 0;
+    MillingManager::numModifiedVertices = 0;
     std::cout << "======== FPS Recording Started ========" << std::endl;
 }
 
@@ -106,6 +107,7 @@ void FPSRecorder::StopRecordingAndReport()
     std::stringstream report;
     report << std::fixed << std::setprecision(2);
     report << "Num of Candidate Vertices: " << MillingManager::numVertices << std::endl;
+    report << "Num of Modified Vertices: " << MillingManager::numModifiedVertices << std::endl;
     report << "Average FPS: " << average << std::endl;
     report << "Recorded FPS values (" << m_recordedFPS.size() << " samples):" << std::endl;
     for (size_t i = 0; i < m_recordedFPS.size(); ++i)
