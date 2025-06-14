@@ -2,6 +2,7 @@
 #include "quadtree.h" // 需要访问 Quadtree 的 maxLevels 和 maxVerticesPerNode
 #include <algorithm> // For std::max and std::min for intersection checks, and std::sort
 #include <iostream> // For std::cout
+#include "Method.h"
 
 QuadtreeNode::QuadtreeNode(glm::vec2 minB, glm::vec2 maxB, int lvl, Quadtree* ownerTree)
     : minBounds(minB), maxBounds(maxB), level(lvl), tree(ownerTree), isZSorted(false) {
@@ -187,7 +188,7 @@ void QuadtreeNode::queryRange(const glm::vec2& center, float radius, std::vector
                 } else {
                     // 启发式剪枝：如果一个点在X轴上的距离已经超过了查询半径，
                     // 那么后续的点在圆内的可能性就很小了（因为Z曲线优先填充X方向）。
-#if 1
+#if ENABLE_Z_ORDER_QUERY_HEURISTIC_PRUNING
                     if (std::abs(dx) > radius) {
                         break;
                     }
@@ -203,7 +204,7 @@ void QuadtreeNode::queryRange(const glm::vec2& center, float radius, std::vector
                 if ((dx * dx + dz * dz) <= radiusSq) {
                     resultVertices.push_back(vertex);
                 } else {
-#if 1
+#if ENABLE_Z_ORDER_QUERY_HEURISTIC_PRUNING
                     if (std::abs(dx) > radius) {
                         break;
                     }

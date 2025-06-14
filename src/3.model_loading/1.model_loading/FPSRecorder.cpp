@@ -13,7 +13,7 @@ FPSRecorder::FPSRecorder()
       m_fpsText("FPS: 0.0"),
       m_fpsAccumulator(0.0f),
       m_frameCount(0),
-      m_fpsUpdateInterval(1.0f)
+      m_fpsUpdateInterval(0.25f)
 {
 }
 
@@ -82,14 +82,14 @@ void FPSRecorder::StopRecordingAndReport()
     // Create a directory for logs if it doesn't exist
     // The executable is typically in a subdirectory like 'build/bin/Debug', 
     // so we go up three levels to the project root.
-    _mkdir("../../logs");
+    _mkdir("../../../logs");
 
     // Generate a timestamp for the filename
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
     std::stringstream ss_time;
     ss_time << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S");
-    std::string filename = "../../logs/fps_log_" + ss_time.str() + ".txt";
+    std::string filename = "../../../logs/fps_log_" + ss_time.str() + ".txt";
 
     std::ofstream logFile(filename);
     if (!logFile.is_open())

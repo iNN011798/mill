@@ -13,12 +13,13 @@
 #include "light_source.h"
 #include "FPSRecorder.h"
 #include "PathManager.h"
+#include "Method.h"
 
 // Constructor
 Application::Application(const char* title)
     : m_Title(title),
       m_Camera(glm::vec3(0.0f, 0.5f, 2.5f)),
-      m_MillingManager(0.01f, -0.11f, -0.3f, ToolType::ball) // Same params as main.cpp
+      m_MillingManager(0.01f, -0.11f, -0.3f, ToolType::Type) // Same params as main.cpp
 {
 }
 
@@ -81,9 +82,9 @@ void Application::init()
     // Initialize milling manager's spatial partition
     float surfaceYValue = 0.0f;
     float surfaceYThreshold = 0.01f;
-    int quadtreeMaxLevels = 2;
+    int quadtreeMaxLevels = 3;
     int quadtreeMaxVertsPerNode = 20;
-#if 1
+#if ENABLE_QUADTREE_OPTIMIZATION
     m_MillingManager.initializeSpatialPartition(*m_CubeModel, surfaceYValue, surfaceYThreshold, quadtreeMaxLevels, quadtreeMaxVertsPerNode);
 #endif
 }
