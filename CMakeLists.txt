@@ -102,8 +102,8 @@ function(create_project_from_sources chapter demo)
 	file(GLOB SOURCE
             "src/${chapter}/${demo}/*.h"
             "src/${chapter}/${demo}/*.cpp"
-            "src/${chapter}/${demo}/*.vs"
-            "src/${chapter}/${demo}/*.fs"
+            "src/${chapter}/${demo}/shaders/*.vs"
+            "src/${chapter}/${demo}/shaders/*.fs"
             "src/${chapter}/${demo}/*.tcs"
             "src/${chapter}/${demo}/*.tes"
             "src/${chapter}/${demo}/*.gs"
@@ -143,9 +143,9 @@ function(create_project_from_sources chapter demo)
     # 拷贝着色器文件、DLL
     # copy shader files to build directory
     file(GLOB SHADERS
-             "src/${chapter}/${demo}/*.vs"
+             "src/${chapter}/${demo}/shaders/*.vs"
              # "src/${chapter}/${demo}/*.frag"
-             "src/${chapter}/${demo}/*.fs"
+             "src/${chapter}/${demo}/shaders/*.fs"
              "src/${chapter}/${demo}/*.tcs"
              "src/${chapter}/${demo}/*.tes"
              "src/${chapter}/${demo}/*.gs"
@@ -170,9 +170,9 @@ function(create_project_from_sources chapter demo)
 
     # msvc 为每个项目生成.vcxproj.user文件，设置工作目录
     # if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
-    #if(MSVC)
-    #    configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
-    #endif(MSVC)
+    if(MSVC)
+        configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
+    endif(MSVC)
 endfunction()
 
 # 项目批量生成，使用foreach循环 + 自定义函数
